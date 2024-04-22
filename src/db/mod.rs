@@ -1,11 +1,10 @@
-pub mod models;
+pub mod user;
 
 use rocket::{fairing::AdHoc, Build, Rocket};
 
-use rocket_sync_db_pools::{
-    database,
-    rusqlite::{params, Connection},
-};
+use rocket_sync_db_pools::{database, rusqlite::Connection};
+
+use self::user::User;
 
 #[database("rusqlite")]
 pub struct SDb(Connection);
@@ -15,16 +14,9 @@ async fn init_db(r: Rocket<Build>) -> Rocket<Build> {
     SDb::get_one(&r)
         .await
         .expect("数据库链接。。")
-        .run(|conn| {
-            conn.execute(
-                "CREATE TABLE IF NOT EXISTS user (
-                    id INTEGER PRIMARY KEY,
-                    username TEXT NOT NULL,
-                    password TEXT NOT NULL
-                )",
-                params![],
-            )
-            .expect("数据库创建失败");
+        .run(|conn: &mut Connection| {
+            // 创建
+            User::create_table(conn);
         })
         .await;
     r
