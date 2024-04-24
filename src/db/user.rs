@@ -6,7 +6,7 @@ use crate::{
     db::SDb,
     tools::{jwt, rand_str, res::ApiRes},
 };
-use crate::tools::pwd::pwd_hash;
+use crate::tools::pwd::{pwd_hash, pwd_verify};
 
 /// 数据表名
 const TABLE_NAME_USER: &str = "user";
@@ -102,6 +102,20 @@ impl User {
             },
         }
     }
+    /// 修改密码
+    pub fn changed_pwd(&self, newpwd: String, conn: &mut Connection) -> Result<ApiRes, ApiRes> {
+        let pwd = pwd_hash(newpwd)?;
+        match conn.execute(
+            format!("update {TABLE_NAME_USER} set password = ?1").as_str(),
+            params![pwd],
+        ) {
+            Ok(i) => Ok(ApiRes::success(format!("{i}"), "密码修改成功!".to_string())),
+            Err(e) => Err(ApiRes::error(
+                e.to_string(),
+                "用户密码修改失败！".to_string(),
+            )),
+        }
+    }
     /// 创建表，返回是否创建成功
     pub fn create_table(conn: &mut Connection) -> bool {
         match conn.execute(
@@ -135,18 +149,12 @@ impl User {
     pub fn to_json(&self) -> String {
         serde_json::to_string(self).unwrap_or_else(|err| err.to_string())
     }
+    /// 验证密码是否正确
+    pub fn verify_pwd(&self, pwd: String) -> bool {
+        pwd_verify(pwd, self.password.clone()).unwrap_or_else(|_| false)
+        // match pwd_verify(self.password.clone(), hash) {
+        //     Ok(res) => res,
+        //     Err(_) => false,
+        // }
+    }
 }
-// 是否有这个用户
-//
-// - true 有这个用户
-//
-// - false 没有这个用户
-// pub fn have_user(key: &'static str, value: String, conn: &mut Connection) -> bool {
-// "SELECT EXISTS(SELECT 1 FROM ?1 WHERE ?2 = ?3)"
-// let result: Result<i64, Error> = conn.query_row(
-//     &format!("SELECT EXISTS(SELECT 1 FROM {TABLE_NAME_USER} WHERE {key} = ?1)"),
-//     params![value],
-//     |r| r.get(0),
-// );
-// User::find_user(key, value, conn).is_ok()
-// }

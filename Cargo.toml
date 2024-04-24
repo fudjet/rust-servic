@@ -9,8 +9,8 @@ edition = "2021"
 # rocket web框架
 rocket = { version = "0.5.0", features = ["json"] }
 # 错误集中处理
-anyhow = "1.0"
-thiserror = "1.0"
+# anyhow = "1.0"
+# thiserror = "1.0"
 # 随机数
 rand = "0.8.5"
 # uuid 用户所有表的唯一标识
