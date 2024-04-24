@@ -1,11 +1,13 @@
-use crate::{
-    db::{user::User, SDb},
-    tools::res::ApiRes,
-};
 use anyhow::Result;
 use rocket::serde::{
     json::{Error, Json},
     Deserialize,
+};
+
+use crate::tools::pwd::pwd_verify;
+use crate::{
+    db::{user::User, SDb},
+    tools::res::ApiRes,
 };
 
 #[derive(Deserialize, Debug, Clone)]
@@ -16,6 +18,7 @@ pub struct RegisterModel {
     /// 密码
     password: String,
 }
+
 /// 登入接口
 ///
 /// 如果用户存在切密码正确，返回token
@@ -24,60 +27,41 @@ pub struct RegisterModel {
 /// db: SDb, task: Result<Json<RegisterModel>, Error>
 ///
 /// 否则 报错
-#[post("/login")]
-pub fn login() -> String {
-    "123".to_string()
+#[post("/login", data = "<body>")]
+pub async fn login(db: SDb, body: Result<Json<RegisterModel>, Error<'_>>) -> String {
+    match body {
+        Ok(json) => {
+            // 查询用户
+            db.run(move |conn| {
+                match User::find_user("username", json.username.clone(), conn) {
+                    Ok(user) => {
+                        // 验证密码
+                        if pwd_verify(json.password.clone(), user.password.clone()).is_ok() {
+                            return match user.get_jwt() {
+                                // 生成 token 返回
+                                Ok(jwt) => ApiRes::success(jwt, "登入成功".to_string()),
+                                Err(e) => e,
+                            };
+                        }
+                        ApiRes::error("".to_string(), "密码错误".to_string())
+                    }
+                    Err(e) => e,
+                }
+            })
+            .await
+            .to_string()
+        }
+        Err(e) => ApiRes::error("".to_string(), format!("{}", e)).to_string(),
+    }
 }
+
 /// 注册
-///
-/// 如果用户存在切密码正正确，返回token
-///
-/// 如果用户存在切密码错误，返回错误
-///
-/// 如果用户不存在，直接注册账号
 #[post("/register", data = "<task>")]
 pub async fn register(db: SDb, task: Result<Json<RegisterModel>, Error<'_>>) -> String {
     match task {
         Ok(json) => User::register(json.username.clone(), json.password.clone(), &db)
             .await
             .to_string(),
-        Err(e) => ApiRes::error("", format!("{}", e)).to_string(),
+        Err(e) => ApiRes::error("".to_string(), format!("{}", e)).to_string(),
     }
 }
-// pub async fn register(db: SDb, task: Result<Json<RegisterModel>, Error<'_>>) -> Json<ApiRes> {
-//     match task {
-//         Ok(json) => {
-//             let username = json.username.clone();
-//             // Attempt to find existing user
-//             let user_exists = db
-//                 .run(move |conn| {
-//                     conn.query_row(
-//                         "SELECT EXISTS(SELECT 1 FROM user WHERE username = ?1)",
-//                         params![username],
-//                         |r| r.get(0),
-//                     )
-//                 })
-//                 .await
-//                 .unwrap_or(false); // Default to false if query fails
-//             if !user_exists {
-//                 // Proceed with registration if user does not exist
-//                 let registration_result = db
-//                     .run(move |conn| {
-//                         conn.execute(
-//                             "INSERT INTO user (username, password) VALUES (?1, ?2)",
-//                             params![&json.username, &json.password],
-//                         )
-//                     })
-//                     .await;
-//                 match registration_result {
-//                     Ok(_) => ApiRes::success("".to_string(), "注册成功"),
-//                     Err(_) => ApiRes::error("注册失败!"),
-//                 }
-//             } else {
-//                 // User already exists
-//                 ApiRes::error("客户已存在!")
-//             }
-//         }
-//         Err(_) => ApiRes::error("数据错误哦"),
-//     }
-// }
