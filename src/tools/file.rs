@@ -1,5 +1,4 @@
 use regex::Regex;
-use rocket::Data;
 // use rocket::tokio::{fs::File, io::AsyncWriteExt};
 
 use crate::tools::ustr;
@@ -13,7 +12,7 @@ use std::{fs, io::Write};
 const FILE_DIR: &str = "static";
 
 /// 获取新的文件地址
-pub fn get_new_path(name: &'static str) -> String {
+pub fn get_new_path(name: String) -> String {
     init_path();
     format!("{FILE_DIR}/{}_{name}", ustr::str_len(10))
 }
@@ -60,7 +59,7 @@ impl FormFile {
             file_type,
             size: file_bytes.len(),
             bytes: file_bytes.to_vec(),
-            path: format!("{FILE_DIR}/{}_{}", ustr::str_len(10), name.clone()),
+            path: get_new_path(name.clone()),
         }
     }
     /// 保存文件到某地
