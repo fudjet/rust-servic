@@ -1,8 +1,9 @@
 #[macro_use]
 extern crate rocket;
+use rocket_cors::{AllowedHeaders, AllowedOrigins, Cors, CorsOptions};
 
 // 必要的
-use rocket::Request;
+use rocket::{http::Method, Request};
 
 // 自己的
 mod api;
@@ -21,12 +22,29 @@ fn bad_request(req: &Request<'_>) -> String {
     println!("{:?}", req);
     "{msg:'400，请求错误'}".to_string()
 }
+// 跨域
+fn get_cors() -> Cors {
+    let allowed_origins = AllowedOrigins::All;
+    let cors = CorsOptions {
+        allowed_origins,
+        allowed_methods: vec![Method::Get, Method::Post]
+            .into_iter()
+            .map(From::from)
+            .collect(),
+        allowed_headers: AllowedHeaders::some(&["Authorization", "Accept"]),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors()
+    .unwrap();
+    cors
+}
 
 #[launch]
 fn rocket() -> _ {
-    
     // 链接本地数据库 sqlite
-    let r = rocket::build().attach(db::stage());
+    let r = rocket::build().attach(db::stage()).attach(get_cors());
+
     // .attach(Logs::init())
     // .mount("/", routes![read]);
     // 处理 错误

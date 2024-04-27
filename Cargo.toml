@@ -22,7 +22,12 @@ jsonwebtoken = "9.3.0"
 serde = { version = "1.0", features = ["derive"] }
 # 本地sqilt数据库必须要，否则会出现sqlite3.dll无法链接
 rusqlite = { version = "0.29.0", features = ["bundled"] }
+# 密码散列加密
 bcrypt = "0.15.1"
+base64 = "0.22.0"
+# cors 跨域
+rocket_cors = "0.6.0"
+regex = "1.10.4"
 
 # 数据库连接池
 [dependencies.rocket_sync_db_pools]

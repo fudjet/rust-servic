@@ -1,5 +1,6 @@
+pub mod client;
 pub mod user;
-
+// web router
 use rocket::{fairing::AdHoc, Build, Rocket};
 
 use rocket_sync_db_pools::{database, rusqlite::Connection};

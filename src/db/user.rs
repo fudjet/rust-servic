@@ -1,12 +1,12 @@
-use rocket::serde::{Deserialize, json::serde_json, Serialize};
-use rocket_sync_db_pools::rusqlite::{Connection, Error, params};
+use rocket::serde::{json::serde_json, Deserialize, Serialize};
+use rocket_sync_db_pools::rusqlite::{params, Connection, Error};
 use uuid::Uuid;
 
+use crate::tools::pwd::{pwd_hash, pwd_verify};
 use crate::{
     db::SDb,
-    tools::{jwt, rand_str, res::ApiRes},
+    tools::{jwt, res::ApiRes, ustr},
 };
-use crate::tools::pwd::{pwd_hash, pwd_verify};
 
 /// 数据表名
 const TABLE_NAME_USER: &str = "user";
@@ -39,7 +39,7 @@ impl User {
             uuid: Uuid::new_v4().to_string(),
             username,
             password: hash_pwd,
-            nickname: format!("nickname_{}", rand_str::str_len(10)),
+            nickname: format!("nickname_{}", ustr::str_len(10)),
         }
     }
     /// 注册用户
@@ -51,7 +51,7 @@ impl User {
             }
             ApiRes::error("".to_string(), "账号已存在，请更改账号".to_string())
         })
-            .await
+        .await
     }
     /// 创建一个用户
     pub fn create_user(username: String, password: String, conn: &mut Connection) -> ApiRes {
