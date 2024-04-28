@@ -1,7 +1,10 @@
 [default]
 # address = "0.0.0.0"
 limits = { form = "64 kB", json = "1 MiB" }
-
+# 加密秘钥 用于cookie的私有加密解密
+secret_key = "6d51dcfb7899438abc8eaa4530123a5249gfac9b9b45"
+# 暂时目标表
+temp_dir = "/tmp"
 ## 仅在调试模式下编译时设置, `cargo build`
 [debug]
 # 启动端口
@@ -14,7 +17,7 @@ address = "127.0.0.1"
 
 ## 仅在发布模式下编译时设置 `cargo build --release`
 [release]
-secret_key = "6d51dcfb7899438abc8eaa45309b9b45"
+
 port = 8080
 ip_header = false
 

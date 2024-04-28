@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use jsonwebtoken::{Algorithm, decode, DecodingKey, encode, EncodingKey, Header, Validation};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
 use super::res::ApiRes;
@@ -11,11 +11,11 @@ const JWT_KEY: &str = "secret";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JwtModel {
     /// UUID
-    uuid: String,
+    pub uuid: String,
     /// 账户
-    username: String,
+    pub username: String,
     /// 验证时间戳
-    exp: usize,
+    pub exp: usize,
 }
 
 impl JwtModel {
@@ -60,10 +60,11 @@ pub fn get_jwt(model: JwtModel) -> Result<String, ApiRes> {
 
 /// 解码jwt
 pub fn decode_jwt(token: String) -> Result<JwtModel, ApiRes> {
+    println!("token: {}", token);
     // 创建解码密钥
     let key = DecodingKey::from_secret(JWT_KEY.as_ref());
     // 解码
-    if let Ok(token) = decode::<JwtModel>(&token, &key, &Validation::new(Algorithm::HS512)) {
+    if let Ok(token) = decode::<JwtModel>(&token, &key, &Validation::new(Algorithm::default())) {
         return Ok(token.claims);
     }
     // 失败后返回空

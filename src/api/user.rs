@@ -1,4 +1,5 @@
 use rocket::{
+    http::CookieJar,
     serde::{
         json::{Error, Json},
         Deserialize,
@@ -31,8 +32,12 @@ pub struct RegisterModel {
 ///
 /// 否则 报错
 #[post("/login", data = "<body>")]
-pub async fn login(db: SDb, body: Result<Json<RegisterModel>, Error<'_>>) -> String {
-    match body {
+pub async fn login(
+    db: SDb,
+    body: Result<Json<RegisterModel>, Error<'_>>,
+    cookie: &CookieJar<'_>,
+) -> String {
+    let m = match body {
         Ok(json) => {
             // 查询用户
             db.run(move |conn| {
@@ -52,10 +57,17 @@ pub async fn login(db: SDb, body: Result<Json<RegisterModel>, Error<'_>>) -> Str
                 }
             })
             .await
-            .to_string()
         }
-        Err(e) => ApiRes::error("".to_string(), format!("{}", e)).to_string(),
+        Err(e) => ApiRes::error("".to_string(), format!("{}", e)),
+    };
+    // 如果有 token cookie
+    if m.code == 0 {
+        cookie.add_private(("token", m.data.clone()));
+    } else {
+        // 否则删除
+        cookie.remove_private("token");
     }
+    m.to_string()
 }
 
 // ==================================================================================

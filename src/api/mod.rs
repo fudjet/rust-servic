@@ -1,6 +1,6 @@
-mod client_api;
-mod user;
+mod client;
 mod file;
+mod user;
 
 /// api 路由
 pub fn api_routes(r: rocket::Rocket<rocket::Build>) -> rocket::Rocket<rocket::Build> {
@@ -9,7 +9,7 @@ pub fn api_routes(r: rocket::Rocket<rocket::Build>) -> rocket::Rocket<rocket::Bu
         // 文件api
         .mount(set_api_path("file"), file::get_api_list())
         // 客户api
-        .mount(set_api_path("client"), client_api::get_api_list())
+        .mount(set_api_path("client"), client::get_api_list())
 }
 
 fn set_api_path(p: &'static str) -> String {
