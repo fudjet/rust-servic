@@ -5,6 +5,9 @@ limits = { form = "64 kB", json = "1 MiB" }
 secret_key = "6d51dcfb7899438abc8eaa4530123a5249gfac9b9b45"
 # 暂时目标表
 temp_dir = "/tmp"
+
+ROCKET_IDENT = "Hello Rocket"
+
 ## 仅在调试模式下编译时设置, `cargo build`
 [debug]
 # 启动端口

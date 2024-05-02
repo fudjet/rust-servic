@@ -11,7 +11,7 @@ pub mod tools;
 #[launch]
 fn rocket() -> _ {
     // 链接本地数据库 sqlite
-    let r = rocket::build().attach(db::stage()).attach(get_cors());
+    let r = rocket::build().attach(db::stage());
 
     // .attach(Logs::init())
     // .mount("/", routes![read]);
@@ -19,5 +19,5 @@ fn rocket() -> _ {
     let r = r.register("/", get_error_list());
     // 加载 路由
     let r = api::api_routes(r);
-    r
+    r.attach(get_cors())
 }
